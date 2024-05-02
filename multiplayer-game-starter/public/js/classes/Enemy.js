@@ -20,5 +20,3 @@ class Enemy {
     this.y = this.y + this.velocity.y
   }
 }
-
-//hello
