@@ -1,11 +1,10 @@
 const express = require('express')
 const app = express()
 
-//imports http package
 const http = require('http')
-
-//creates the http server
 const server = http.createServer(app)
+const { Server } = require('socket.io')
+const io = new Server(server)
 
 const port = 3000
 
@@ -14,6 +13,10 @@ app.use(express.static('public'))
 //routing
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html')
+})
+
+io.on('connection', (socket) => {
+  console.log('a user connected')
 })
 
 server.listen(port, () => {
