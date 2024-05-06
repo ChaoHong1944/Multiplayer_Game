@@ -14,6 +14,38 @@ const x = canvas.width / 2
 const y = canvas.height / 2
 
 const frontendPlayers ={}
+const frontendProjectiles = {}
+
+socket.on("connect", () =>{
+  socket.emit('initCanvas', {
+    width: canvas.width,
+    height: canvas.height,
+    devicePixelRatio
+  })
+})
+
+socket.on('updateProjectiles', (backendProjectiles) =>{
+  for (const id in backendProjectiles) {
+    const backendProjectile = backendProjectiles[id]
+
+    if (!frontendProjectiles[id]){
+        frontendProjectiles[id] = new Projectile({
+          x: backendProjectile.x, 
+          y: backendProjectile.y, 
+          radius: 5, 
+          color: frontendPlayers[backendProjectile.playerId]?.color,
+          velocity: backendProjectile.velocity})
+    } else{
+        frontendProjectiles[id].x += backendProjectiles[id].velocity.x
+        frontendProjectiles[id].y += backendProjectiles[id].velocity.y
+    }
+  }
+  for (const frontendProjectileId in frontendProjectiles){
+    if(!backendProjectiles[frontendProjectileId]){
+      delete frontendProjectiles[frontendProjectileId]
+    }
+  }
+})
 
 socket.on('updatePlayers', (backendPlayers) =>{
   for (const id in backendPlayers){
@@ -25,9 +57,30 @@ socket.on('updatePlayers', (backendPlayers) =>{
         radius: 10, 
         color: backendPlayer.color})
     } else{
+      if (id === socket.id){
       // if player already exist
-    frontendPlayers[id].x = backendPlayer.x
-    frontendPlayers[id].y = backendPlayer.y
+        frontendPlayers[id].x = backendPlayer.x
+        frontendPlayers[id].y = backendPlayer.y
+
+        const lastBackendInputIndex = playerInputs.findIndex(input => {
+          return backendPlayer.sequenceNum === input.sequenceNum
+    })
+        if (lastBackendInputIndex > -1)
+          playerInputs.splice(0, lastBackendInputIndex + 1)
+
+          playerInputs.forEach(input =>{
+            frontendPlayers[id].x += input.dx
+            frontendPlayers[id].y += input.dy
+      })
+      } else {
+        // for all other players 
+        gsap.to(frontendPlayers[id],{
+          x: backendPlayer.x,
+          y: backendPlayer.y,
+          duration: 0.015, 
+          ease: 'linear'
+        } )
+      }
     }
   }
   for (const id in frontendPlayers){
@@ -46,6 +99,14 @@ function animate() {
     const frontendPlayer = frontendPlayers[id]
     frontendPlayer.draw()
   }
+  for (const id in frontendProjectiles ){
+    const frontendProjectile = frontendProjectiles[id]
+    frontendProjectile.draw()
+  }
+  // for (let i = frontendProjectiles.length - 1; i >= 0; i--){
+  //   const frontendProjectile = frontendProjectiles[i]
+  //   frontendProjectile.update()
+  // }
 }
 
 animate()
@@ -120,7 +181,7 @@ window.addEventListener('keyup', (event) => {
       keys.W.pressed = false
       break
     case 'KeyA':
-      keys.S.pressed = false
+      keys.A.pressed = false
       break
     case 'KeyS':
       keys.S.pressed = false

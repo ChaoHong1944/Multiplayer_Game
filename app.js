@@ -15,7 +15,12 @@ app.get('/', (req, res) => {
 })
 
 const backendPlayers ={}
+const backendProjectiles ={}
+
 const SPEED = 10
+const RADIUS = 10
+const PROJECTILE_RADIUS = 5
+let projectileId = 0
 
 io.on('connection', (socket) => {
   console.log('a user connected')
@@ -26,6 +31,35 @@ io.on('connection', (socket) => {
     sequenceNum: 0
   }
   io.emit('updatePlayers', backendPlayers)
+
+  socket.on('initCanvas', ({width, height, devicePixelRatio})=> {
+    backendPlayers[socket.id].canvas ={
+      width,
+      height
+    }
+    backendPlayers[socket.id].radius = RADIUS
+
+    if (devicePixelRatio > 1) {
+      backendPlayers[socket.id].radius = 2 * RADIUS
+    }
+  })
+
+  socket.on('shoot', ({x, y, angle}) =>{
+    projectileId++
+
+    const velocity = {
+      x: Math.cos(angle) * 5,
+      y: Math.sin(angle) * 5
+    }
+
+    backendProjectiles[projectileId] ={
+      x,
+      y, 
+      velocity,
+      playerId: socket.id
+    }
+    console.log(backendProjectiles)
+  })
 
   socket.on('disconnect', (reason) =>{
     console.log(reason)
@@ -52,8 +86,39 @@ io.on('connection', (socket) => {
   })
   console.log(backendPlayers)
 })
-
+// backend ticker
 setInterval(() => {
+  // update projectile position
+  for (const id in backendProjectiles ){
+    backendProjectiles[id].x += backendProjectiles[id].velocity.x
+    backendProjectiles[id].y += backendProjectiles[id].velocity.y
+
+    const PROJECTILE_RADIUS = 5
+    if (
+        backendProjectiles[id].x - PROJECTILE_RADIUS >= backendPlayers[backendProjectiles[id].playerId]?.canvas?.width ||
+        backendProjectiles[id].x + PROJECTILE_RADIUS <= 0 || 
+        backendProjectiles[id].y - PROJECTILE_RADIUS >= backendPlayers[backendProjectiles[id].playerId]?.canvas?.height ||
+        backendProjectiles[id].y + PROJECTILE_RADIUS <= 0  ) {
+        delete backendProjectiles[id]
+        continue
+    }
+   for (const playerId in backendPlayers){
+    const backendPlayer = backendPlayers[playerId]
+
+    const DISTANCE = Math.hypot(
+      backendProjectiles[id].x - backendPlayer.x, 
+      backendProjectiles[id].y - backendPlayer.y)
+
+      if (DISTANCE < PROJECTILE_RADIUS + backendPlayer.radius && 
+        backendProjectiles[id].playerId !== playerId){
+        delete backendProjectiles[id]
+        delete backendPlayers[playerId]
+        break
+      }
+      console.log(DISTANCE)
+   }
+  }
+  io.emit('updateProjectiles', backendProjectiles)
   io.emit('updatePlayers', backendPlayers)
 }, 15)
 
