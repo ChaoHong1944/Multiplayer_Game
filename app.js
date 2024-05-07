@@ -28,7 +28,8 @@ io.on('connection', (socket) => {
     x:500 * Math.random(),
     y:500 * Math.random(),
     color: `hsl(${360 * Math.random()}, 100%, 50%)`,
-    sequenceNum: 0
+    sequenceNum: 0,
+    score: 0
   }
   io.emit('updatePlayers', backendPlayers)
 
@@ -111,6 +112,11 @@ setInterval(() => {
 
       if (DISTANCE < PROJECTILE_RADIUS + backendPlayer.radius && 
         backendProjectiles[id].playerId !== playerId){
+        //when a player fires and hits a player the player who shot the bullet gains points
+        if(backendPlayers[backendProjectiles[id].playerId]){
+          backendPlayers[backendProjectiles[id].playerId].score++ 
+        }
+        console.log(backendPlayers[backendProjectiles[id].playerId])
         delete backendProjectiles[id]
         delete backendPlayers[playerId]
         break
