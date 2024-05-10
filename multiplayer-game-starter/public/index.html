@@ -6,18 +6,21 @@
         -moz-osx-font-smoothing: grayscale;
         text-rendering: optimizeLegibility;
         margin: 0;
+        background: black;
       }
       input::placeholder{
         color: #94a3b8
       }
       canvas{
-        width: 100%;
-        height: 100%;
+        width: 1920px;
+        height: 1080px;
+        background-image: url('/Image/fancy-cushion.webp')
       }
     </style>
   </head>
-  <body>
-    <div
+  <body style="display: flex; align-items: center; justify-content: center">
+    <div>
+      <div
       style="
         position: absolute;
         color: white;
@@ -34,6 +37,7 @@
     </div>
     <canvas></canvas>
          <!-- username input -->
+          </div>
          <div
          style="
            display: flex;

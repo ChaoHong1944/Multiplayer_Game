@@ -7,8 +7,10 @@ const scoreEl = document.querySelector('#scoreEl')
 
 const devicePixelRatio = window.devicePixelRatio || 1
 
-canvas.width = innerWidth * devicePixelRatio
-canvas.height = innerHeight * devicePixelRatio
+canvas.width = 1920 * devicePixelRatio
+canvas.height = 1080 * devicePixelRatio
+
+c.scale(devicePixelRatio, devicePixelRatio)
 
 const x = canvas.width / 2
 const y = canvas.height / 2
@@ -47,7 +49,10 @@ socket.on('updatePlayers', (backendPlayers) =>{
         x: backendPlayer.x, 
         y: backendPlayer.y, 
         radius: 10, 
-        color: backendPlayer.color})
+        color: backendPlayer.color,
+        username: backendPlayer.username
+      })
+        
         //selects the player name to post on leaderboard/scoreboard
         document.querySelector('#playerLabels').innerHTML +=`<div data-id="${id}" data-score="${backendPlayer.score}"> ${backendPlayer.username}: ${backendPlayer.score}</div>`
     } else{
@@ -75,30 +80,23 @@ socket.on('updatePlayers', (backendPlayers) =>{
         parentDiv.appendChild(div)
       })
 
-      if (id === socket.id){
-      // if player already exist
-        frontendPlayers[id].x = backendPlayer.x
-        frontendPlayers[id].y = backendPlayer.y
+      frontendPlayers[id].target = {
+        x: backendPlayer.x,
+        y: backendPlayer.y
+      }
 
-        const lastBackendInputIndex = playerInputs.findIndex(input => {
+      if (id === socket.id){
+        const lastBackendInputIndex = playerInputs.findIndex((input) => {
           return backendPlayer.sequenceNum === input.sequenceNum
     })
         if (lastBackendInputIndex > -1)
           playerInputs.splice(0, lastBackendInputIndex + 1)
 
-          playerInputs.forEach(input =>{
-            frontendPlayers[id].x += input.dx
-            frontendPlayers[id].y += input.dy
-      })
-      } else {
-        // for all other players 
-        gsap.to(frontendPlayers[id],{
-          x: backendPlayer.x,
-          y: backendPlayer.y,
-          duration: 0.015, 
-          ease: 'linear'
-        } )
-      }
+          playerInputs.forEach((input) =>{
+            frontendPlayers[id].target.x += input.dx
+            frontendPlayers[id].target.y += input.dy
+        })
+      } 
     }
   }
   //deleting front end players
@@ -118,11 +116,17 @@ socket.on('updatePlayers', (backendPlayers) =>{
 let animationId
 function animate() {
   animationId = requestAnimationFrame(animate)
-  c.fillStyle = 'rgba(0, 0, 0, 0.1)'
-  c.fillRect(0, 0, canvas.width, canvas.height)
+  c.fillStyle = 'rgba(0, 0, 0, 0.1)'//maybe remove this
+  c.clearRect(0, 0, canvas.width, canvas.height)
 
   for (const id in frontendPlayers ){
     const frontendPlayer = frontendPlayers[id]
+
+    if(frontendPlayer.target){
+      frontendPlayers[id].x += (frontendPlayers[id].target.x - frontendPlayers[id].x) * 0.5
+      frontendPlayers[id].y += (frontendPlayers[id].target.y - frontendPlayers[id].y) * 0.5
+      }
+
     frontendPlayer.draw()
   }
   for (const id in frontendProjectiles ){

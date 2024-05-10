@@ -44,10 +44,10 @@ io.on('connection', (socket) => {
     console.log(backendProjectiles)
   })
 
-  socket.on('init',({username, width, height, devicePixelRatio}) => {
+  socket.on('init',({username, width, height}) => {
     backendPlayers[socket.id] ={
-      x:500 * Math.random(),
-      y:500 * Math.random(),
+      x:1920 * Math.random(),
+      y:1080 * Math.random(),
       color: `hsl(${360 * Math.random()}, 100%, 50%)`,
       sequenceNum: 0,
       score: 0,
@@ -59,10 +59,6 @@ io.on('connection', (socket) => {
       height
     }
     backendPlayers[socket.id].radius = RADIUS
-
-    if (devicePixelRatio > 1) {
-      backendPlayers[socket.id].radius = 2 * RADIUS
-    }
   })
 
   socket.on('disconnect', (reason) =>{
@@ -72,6 +68,10 @@ io.on('connection', (socket) => {
   })
   
   socket.on('keydown', ({keycode, sequenceNum}) => {
+    const backendPlayer = backendPlayers[socket.id]
+
+    if(!backendPlayers[socket.id])return
+
     backendPlayers[socket.id].sequenceNum = sequenceNum
     switch(keycode){
       case 'KeyW':
@@ -87,6 +87,16 @@ io.on('connection', (socket) => {
         backendPlayers[socket.id].x += SPEED
         break
       }
+      const playerSides = {
+        left: backendPlayer.x - backendPlayer.radius,
+        right: backendPlayer.x + backendPlayer.radius,
+        top: backendPlayer.y - backendPlayer.radius,
+        bottom: backendPlayer.y + backendPlayer.radius
+      }
+      if (playerSides.left < 0) backendPlayers[socket.id].x = backendPlayer.radius
+      if (playerSides.right > 1920) backendPlayers[socket.id].x = 1920 - backendPlayer.radius
+      if (playerSides.top < 0) backendPlayers[socket.id].y = backendPlayer.radius
+      if (playerSides.bottom > 1080) backendPlayers[socket.id].y = 1080 - backendPlayer.radius
   })
   console.log(backendPlayers)
 })
@@ -136,3 +146,5 @@ server.listen(port, () => {
 })
 
 console.log('server loaded')
+
+
