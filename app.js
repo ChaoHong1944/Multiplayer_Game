@@ -46,8 +46,8 @@ io.on('connection', (socket) => {
 
   socket.on('init',({username, width, height}) => {
     backendPlayers[socket.id] ={
-      x:1920 * Math.random(),
-      y:1080 * Math.random(),
+      x:1024 * Math.random(),
+      y:576 * Math.random(),
       color: `hsl(${360 * Math.random()}, 100%, 50%)`,
       sequenceNum: 0,
       score: 0,
@@ -94,9 +94,9 @@ io.on('connection', (socket) => {
         bottom: backendPlayer.y + backendPlayer.radius
       }
       if (playerSides.left < 0) backendPlayers[socket.id].x = backendPlayer.radius
-      if (playerSides.right > 1920) backendPlayers[socket.id].x = 1920 - backendPlayer.radius
+      if (playerSides.right > 1024) backendPlayers[socket.id].x = 1024 - backendPlayer.radius
       if (playerSides.top < 0) backendPlayers[socket.id].y = backendPlayer.radius
-      if (playerSides.bottom > 1080) backendPlayers[socket.id].y = 1080 - backendPlayer.radius
+      if (playerSides.bottom > 576) backendPlayers[socket.id].y = 576 - backendPlayer.radius
   })
   console.log(backendPlayers)
 })
