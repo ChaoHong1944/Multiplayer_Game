@@ -94,9 +94,9 @@ io.on('connection', (socket) => {
         bottom: backendPlayer.y + backendPlayer.radius
       }
       if (playerSides.left < 0) backendPlayers[socket.id].x = backendPlayer.radius
-      if (playerSides.right > 1500) backendPlayers[socket.id].x = 1500 - backendPlayer.radius
+      if (playerSides.right > 1400) backendPlayers[socket.id].x = 1400 - backendPlayer.radius
       if (playerSides.top < 0) backendPlayers[socket.id].y = backendPlayer.radius
-      if (playerSides.bottom > 1000) backendPlayers[socket.id].y = 1000 - backendPlayer.radius
+      if (playerSides.bottom > 800) backendPlayers[socket.id].y = 800 - backendPlayer.radius
   })
   console.log(backendPlayers)
 })
